@@ -121,7 +121,7 @@ function radiovisplayer_initsocket(topic, host, port) {
 	$.fn.radiovisplayer = function(topic, host, port) {
 
 		if (host == undefined)
-			host = window.location.host;
+			host = window.location.hostname;
 		if (port == undefined)
 			port = 8777;
 

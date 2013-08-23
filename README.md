@@ -15,11 +15,11 @@ The websocket server is located in websocketserver. To run it, just use `python 
 
 The websocket server is written in python. He needs the following packages:
 
-* ws4py
+* ws4py==0.3.0-beta
 * gevent
 * dnspython
 
-You can use `pip install ws4py gevent dnspython` to install them.
+You can use `pip install ws4py==0.3.0-beta gevent dnspython` to install them.
 
 ### Client
 
