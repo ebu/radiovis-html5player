@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<title>RadioVis HTML5 Player</title>
+		
+		<style>
+			body{
+				font-family: verdana;
+				font-size:13px;
+			}
+
+			.radiovis-main {
+				border: 1px #C5C5C2 solid;
+				box-shadow: 1px 1px 10px 0px #C5C5C2;
+			}
+
+			.radiovis-textframe {
+				border-top: 1px #C5C5C2 solid;
+			}
+
+			#frame1, #frame2, #frame3 {
+				float: left;
+				margin: 25px;
+			}
+		</style>
+
+		<link rel="stylesheet" href="css/radiovis-html5player.css">
+
+		<script src="js/jquery-1.10.2.min.js"></script>
+		<script src="js/radiovis-html5player.js"></script>
+		
+	</head>
+	<body>
+		
+		<script>
+				$(document).ready(function(){
+					$('#frame1').radiovisplayer('/topic/fm/4e1/4000/10800');
+					$('#frame2').radiovisplayer('/topic/dab/4e1/4fff/4001/0');
+					$('#frame3').radiovisplayer('/topic/fm/ch/43d1/10800');
+				});
+		</script>
+
+
+		<div id="frame1"></div>
+		<div id="frame2"></div>
+		<div id="frame3"></div>
+
+	</body>
+</html>
