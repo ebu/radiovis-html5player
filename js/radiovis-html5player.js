@@ -13,6 +13,8 @@ function radiovisplayer_initsocket(topic, host, port) {
 	var elem = $('.radiovis-main[radiovis-topic="' + topic + '"]');
 	elem.find('.radiovis-textframe').html('Connecting to ' + topic + '...');
 
+	var radiovisplayer_connected_message = 'Connected, waiting for the first message !';
+
 	ws.onmessage = function (evt) 
 	{ 
 		var elem = $('.radiovis-main[radiovis-topic="' + evt.target.radiovis_topic + '"]');
@@ -23,7 +25,7 @@ function radiovisplayer_initsocket(topic, host, port) {
 
 		if (splited_message[0] == 'RADIOVISWEBSOCKET') {  // Internal message
 			if (splited_message[1] == 'HELLO\x00') {
-				elem.find('.radiovis-textframe').html('Connected, waiting for the first message !');
+				elem.find('.radiovis-textframe').html(radiovisplayer_connected_message);
 				return;
 			}
 			if (splited_message[1] == 'ERROR') {
@@ -98,6 +100,12 @@ function radiovisplayer_initsocket(topic, host, port) {
 						}
 
 						elem.attr('lastImageShown', toShow);
+
+						//Some radio dosen't send text. If we're still on the default message, remove it
+						if (elem.find('.radiovis-textframe').html() == radiovisplayer_connected_message)
+							elem.find('.radiovis-textframe').html('');
+
+						
 					}
 				}
 			}
