@@ -12,12 +12,27 @@
 	position: absolute;
 }
 
-.radiovis-textframe {
+.radiovis-outtertext {
 	width: 	320px;
 	padding-left: 2px;
+	overflow: hidden;
+	height: 20px;
+    position: relative;
 }
 
 .radiovis-main {
 	height: 260px;
 	width: 320px;
+}
+
+
+.scroll-box {
+  width: 100px;
+  height: 1.2em;
+  
+}
+
+.radiovis-innertext {
+  position: absolute;
+  white-space: nowrap;
 }

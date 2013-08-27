@@ -11,7 +11,7 @@ function radiovisplayer_initsocket(topic, host, port) {
 	ws.radiovis_port = port;
 
 	var elem = $('.radiovis-main[radiovis-topic="' + topic + '"]');
-	elem.find('.radiovis-textframe').html('Connecting to ' + topic + '...');
+	elem.find('.radiovis-innertext').html('Connecting to ' + topic + '...');
 
 	var radiovisplayer_connected_message = 'Connected, waiting for the first message !';
 
@@ -25,15 +25,15 @@ function radiovisplayer_initsocket(topic, host, port) {
 
 		if (splited_message[0] == 'RADIOVISWEBSOCKET') {  // Internal message
 			if (splited_message[1] == 'HELLO\x00') {
-				elem.find('.radiovis-textframe').html(radiovisplayer_connected_message);
+				elem.find('.radiovis-innertext').html(radiovisplayer_connected_message);
 				return;
 			}
 			if (splited_message[1] == 'ERROR') {
-				elem.find('.radiovis-textframe').html('<span style="color: red;">Error: ' + splited_message[2] + '</span>');
+				elem.find('.radiovis-innertext').html('<span style="color: red;">Error: ' + splited_message[2] + '</span>');
 				return;
 			}
 
-			elem.find('.radiovis-textframe').html('<span style="color: red;">Unexcepted reply: ' + splited_message[1] + '</span>');
+			elem.find('.radiovis-innertext').html('<span style="color: red;">Unexcepted reply: ' + splited_message[1] + '</span>');
 		} else {
 			command = '';
 			headers = new Array();
@@ -69,8 +69,11 @@ function radiovisplayer_initsocket(topic, host, port) {
 				//Is it for text ?
 				if (headers['destination']  == evt.target.radiovis_topic + '/text') {
 					//Do we have to show text ?
-					if (body.substr(0, 5) == 'TEXT ')
-						elem.find('.radiovis-textframe').text(body.substr(5));
+					if (body.substr(0, 5) == 'TEXT ') {
+						newText = body.substr(5);
+
+						elem.find('.radiovis-innertext').text(newText);
+					}
 				}
 
 				//Is it for images ?
@@ -102,10 +105,14 @@ function radiovisplayer_initsocket(topic, host, port) {
 						elem.attr('lastImageShown', toShow);
 
 						//Some radio dosen't send text. If we're still on the default message, remove it
-						if (elem.find('.radiovis-textframe').html() == radiovisplayer_connected_message)
-							elem.find('.radiovis-textframe').html('');
+						if (elem.find('.radiovis-innertext').html() == radiovisplayer_connected_message)
+							elem.find('.radiovis-innertext').html('');
 
-						
+						//Update link
+						if (headers['link'])
+							elem.find('a').attr('href', headers['link']);
+						else
+							elem.find('a').attr('href', '#');
 					}
 				}
 			}
@@ -139,7 +146,7 @@ function radiovisplayer_initsocket(topic, host, port) {
 		frame +=    '        <div class="radiovis-P0"><a href="" class="radiovis-LI"><img class="radiovis-I0" src="' + radiovisplayer_first_image + '"></a></div>';
 		frame +=    '    </div>';
 		frame +=    '</div>';
-		frame +=    '<div class="radiovis-textframe">Initlialization...</div>';
+		frame +=    '<div class="radiovis-outtertext"><div class="radiovis-innertext">Initlialization...</div></div>';
 
 		//Add the frame
 		this.html(frame);
@@ -147,6 +154,29 @@ function radiovisplayer_initsocket(topic, host, port) {
 		//Add properties
 		this.attr('radiovis-topic', topic);
 		this.addClass('radiovis-main');
+
+		//Scroll text
+		this.find('.radiovis-outtertext').bind('scrollage', function() {
+			var boxWidth = $(this).width();
+			var textWidth = $(this).find('.radiovis-innertext').width();
+
+			var finalPos =  textWidth - boxWidth;
+
+			if (finalPos < 0)
+				finalPos = 0;
+
+			var animSpeed = finalPos * 20;
+
+			if (animSpeed == 0)
+				animSpeed = 1000;
+
+			$(this)
+				.animate({scrollLeft: finalPos}, {duration : animSpeed})
+				.animate({scrollLeft: 0}, {duration : animSpeed, queue: true, complete: function() {
+					$(this).trigger('scrollage');
+				}
+			});
+		}).trigger('scrollage');
 
 		radiovisplayer_initsocket(topic, host, port);		
 		
