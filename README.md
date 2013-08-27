@@ -18,8 +18,12 @@ The websocket server is written in python. He needs the following packages:
 * ws4py==0.3.0-beta
 * gevent
 * dnspython
+* python-statsd (BSD license)
 
-You can use `pip install ws4py==0.3.0-beta gevent dnspython` to install them.
+You can use `pip install ws4py==0.3.0-beta gevent dnspython python-statsd ` to install them.
+
+
+The server use statsd to send some stats about the number of connections. You can setup a local statsd server to collect them.
 
 ### Client
 

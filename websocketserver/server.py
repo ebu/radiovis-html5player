@@ -3,6 +3,7 @@
 
 SERVER_IP = '0.0.0.0'
 SERVER_PORT = 8777
+STATS_GAUGE_APPNAME = 'app.html5player'
 
 from gevent import monkey; monkey.patch_all()
 
@@ -10,6 +11,55 @@ from ws4py.websocket import WebSocket
 import dns.resolver
 import time
 import socket
+import statsd
+
+from gevent.coros import RLock
+
+class Stats():
+    """The class to handle stats"""
+
+    def __init__(self):
+        self.gauge = statsd.Gauge(STATS_GAUGE_APPNAME)
+
+        self.topic_list = {}
+
+        self.lock = RLock()
+
+    def update_stats(self):
+        """Update statsd stats"""
+
+        total = 0
+
+        with self.lock:
+            for topic in self.topic_list:
+                self.gauge.send('topic.' + '.'.join(topic.split('/')), self.topic_list[topic])
+                total += self.topic_list[topic]
+
+        self.gauge.send('nb_clients', total)
+
+
+
+    def new_client(self, topic):
+        """Register a new client on a topic"""
+
+        with self.lock:
+            if topic not in self.topic_list:
+                self.topic_list[topic] = 0
+
+            self.topic_list[topic] += 1
+
+        self.update_stats()
+
+    def remove_client(self, topic):
+        """Unregister a client on a topic"""
+
+        with self.lock:
+            self.topic_list[topic] -= 1
+
+        self.update_stats()
+
+stats = Stats()
+
 
 class RadioVisWebSocket(WebSocket):
 
@@ -19,12 +69,19 @@ class RadioVisWebSocket(WebSocket):
         self.topic = environ['PATH_INFO']
         self.stompsocket = None
 
+        
+
     def closed(self, code, reason=None):
         if self.stompsocket:
             self.stompsocket.close()
 
+        stats.remove_client(self.topic)
+
     def opened(self):
         """Called when a client is connected: send initial message"""
+
+        stats.new_client(self.topic)
+
         if self.topic[:7] != '/topic/':
             self.send("RADIOVISWEBSOCKET:ERROR\x00")            
         else:
