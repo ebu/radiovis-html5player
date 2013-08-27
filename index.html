@@ -17,7 +17,7 @@
 				border-top: 1px #C5C5C2 solid;
 			}
 
-			#frame1, #frame2, #frame3 {
+			.frame {
 				float: left;
 				margin: 25px;
 			}
@@ -30,19 +30,26 @@
 		
 	</head>
 	<body>
-		
 		<script>
 				$(document).ready(function(){
 					$('#frame1').radiovisplayer('/topic/fm/4e1/4000/10800');
-					$('#frame2').radiovisplayer('/topic/dab/4e1/4fff/4001/0');
-					$('#frame3').radiovisplayer('/topic/fm/ch/43d1/10800');
+					$('#frame2').radiovisplayer('/topic/dab/ce1/ce15/c221/0');
+					$('#frame3').radiovisplayer('/topic/fm/fr/f201/10440');
+					$('#frame4').radiovisplayer('/topic/dab/6e0/6005/6354/0');
+					$('#frame5').radiovisplayer('/topic/dab/ce1/c185/c460/0');
+					$('#frame6').radiovisplayer('/topic/dab/de0/10d9/d3a6/0');
+
 				});
 		</script>
 
 
-		<div id="frame1"></div>
-		<div id="frame2"></div>
-		<div id="frame3"></div>
+		<div id="frame1" class="frame"></div>
+		<div id="frame2" class="frame"></div>
+		<div id="frame3" class="frame"></div>
+		<div id="frame4" class="frame"></div>
+		<div id="frame5" class="frame"></div>
+		<div id="frame6" class="frame"></div>
+
 
 	</body>
 </html>
