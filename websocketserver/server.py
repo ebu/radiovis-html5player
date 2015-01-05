@@ -15,6 +15,8 @@ import statsd
 
 from gevent.coros import RLock
 
+statsd.Connection.set_defaults(host='radiodns.ebu.io', port=8125, sample_rate=1, disabled=False)
+
 class Stats():
     """The class to handle stats"""
 
@@ -127,7 +129,14 @@ class RadioVisWebSocket(WebSocket):
 
             # Connect to radiovis server
             self.stompsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.stompsocket.connect((ip, int(port)))
+            try:
+              self.stompsocket.connect((ip, int(port)))
+            except:
+              print 'Unable to connect to ', ip, port
+              self.send("RADIOVISWEBSOCKET:ERROR:Unable to connect to Stomp\x00")
+              time.sleep(1)
+              self.close()
+              return            
 
             self.incomingData = ''
 
