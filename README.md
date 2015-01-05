@@ -33,6 +33,52 @@ You can use `$('#an_id').radiovisplayer('/topic/bla/bla', ip, port);` to load th
 
 The file _index.html_ contains a sample implementation.
 
+## Running HTML Player
+
+### HTTP Server
+
+Run the HTTP Server to serve the `index.html` using SimpleHTTPServer with python.
+```
+cd website
+python -m SimpleHTTPServer 8080
+```
+
+If you want to run the HTTP Server using supervisord use the following commands.
+```
+cd website
+
+# Start the Server
+supervisord -c supervisord-simpleserver.conf
+
+# Stop the Server
+supervisorctl -c supervisord-simpleserver.conf stop simpleserver
+supervisorctl -c supervisord-simpleserver.conf shutdown
+
+# Restart the Server
+supervisorctl -c supervisord-simpleserver.conf restart simpleserver
+```
+
+### WebSocket Server
+
+Run the Websocket Server using the following commands
+```
+python server.py
+```
+
+If you want to run the Websocket Server using supervisord use the following commands.
+```
+cd websocketserver/
+
+# Start the Server
+supervisord -c supervisord-websocketserver.conf
+
+# Stop the Server
+supervisorctl -c supervisord-websocketserver.conf stop websocketserver
+supervisorctl -c supervisord-websocketserver.conf shutdown
+
+# Restart the Server
+supervisorctl -c supervisord-websocketserver.conf restart websocketserver
+```
 ## License
 
 Copyright (c) 2013 EBU. All rights reserved.
