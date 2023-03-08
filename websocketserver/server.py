@@ -10,13 +10,11 @@ from gevent import monkey; monkey.patch_all()
 from ws4py.websocket import WebSocket
 
 import asyncio
-#import WebSocket
 import dns.resolver
 import time
 import socket
 import requests
 import pycurl
-#from statsd import StatsClient
 #import statsd
 
 from gevent.lock import RLock
@@ -75,12 +73,7 @@ class RadioVisWebSocket(WebSocket):
 
         self.topic = environ['PATH_INFO']
         self.stompsocket = None
-
-    #def send(data, flags=0):
-    #    b = bytearray()
-    #    b.extend(data.encode())
-    #    super().send(b, flags) 
-
+        
     def closed(self, code, reason=None):
         if self.stompsocket:
             self.stompsocket.close()
@@ -106,8 +99,6 @@ class RadioVisWebSocket(WebSocket):
             
             # Find radiodns servers
             ns = str(dns.resolver.resolve('radiodns.org', 'NS')[0])
-            #print(ns)
-            #return
             ip = str(dns.resolver.resolve(ns, 'A')[0])
 
             # Build a resolver using radiodns.org nameserver, timeout of 2, to be sure to have the latested FQDN
@@ -129,8 +120,6 @@ class RadioVisWebSocket(WebSocket):
             resolver.lifetime = 2  # Timeout of 2
             if self.download_spi_file('_radioepg._tcp.' + fqdn):
                 self.download_spi_file('_radiospi._tcp.' + fqdn)
-            #response = requests.get()
-            #print(response)
             
             try:
                 vis = str(resolver.resolve('_radiovis._tcp.' + fqdn, 'SRV')[0])
@@ -147,7 +136,6 @@ class RadioVisWebSocket(WebSocket):
             ip = ip[:-1]
             # Connect to radiovis server
             self.stompsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            #self.stompsocket.connect((ip, int(port)))
             try:
                 print(f"Connecting to {ip}:{port}")
                 self.stompsocket.connect((ip, int(port)))
