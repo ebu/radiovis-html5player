@@ -15,6 +15,7 @@ import time
 import socket
 import requests
 import pycurl
+from datetime import datetime
 #import statsd
 
 from gevent.lock import RLock
@@ -246,9 +247,11 @@ class RadioVisWebSocket(WebSocket):
             curl.setopt(pycurl.FOLLOWLOCATION, 1)
             curl.perform()
             curl.close()
-            
-        url = "http://" + domain[:-1] + "/radiodns/spi/3.1/20230308_PI.xml"
-        filename = "PI" + self.topic.replace("/topic", "").replace("/", "_") + ".xml"
+        
+        date =  datetime.now()
+        dateStr = date.strftime("%Y%m%d")  
+        url = "http://" + domain[:-1] + "/radiodns/spi/3.1/" + self.topic.replace("/topic/", "") + "/" + dateStr + "_PI.xml"
+        filename = "PI_" + dateStr + self.topic.replace("/topic", "").replace("/", "_") + ".xml"
         with open(filename, "wb") as fp:
             curl = pycurl.Curl()
             curl.setopt(pycurl.URL, url)
