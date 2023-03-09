@@ -18,7 +18,7 @@ function fadeIn(el, tout = 1000){
 	el.classList.add("fadeIn");
 }
 
-class Frame extends HTMLElement
+class RadioVisFrame extends HTMLElement
 {
 	constructor(){
 		super();
@@ -235,4 +235,4 @@ class Frame extends HTMLElement
 	}
 }
 
-customElements.define("custom-frame", Frame);
+customElements.define("vis-frame", RadioVisFrame);
