@@ -33,3 +33,8 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Downloaded PI, SI, GI Files
+PI*.xml
+SI*.xml
+GI*.xml
