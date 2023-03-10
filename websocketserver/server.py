@@ -15,6 +15,7 @@ import time
 import socket
 import requests
 import pycurl
+import os.path
 from datetime import datetime
 #import statsd
 
@@ -152,15 +153,11 @@ class RadioVisWebSocket(WebSocket):
 
                 while not "\x00" in self.incomingData:
                     data = self.stompsocket.recv(1024)
-                    print ("DATA")
-                    print (data)
                     if not data:
                        print ("Nothing received") 
                        return None
                     else:
                        self.incomingData += data.decode("utf8")
-                    print("IDATA")
-                    print (self.incomingData)
 
                 # Get only one frame
                 splited_data = self.incomingData.split('\x00', 1)
@@ -173,8 +170,6 @@ class RadioVisWebSocket(WebSocket):
             self.stompsocket.send(b'CONNECT\n\n\x00')
 
             result = get_one_frame()
-            print("RESULT")
-            print(result)
             if not result:
                 self.send(b"RADIOVISWEBSOCKET:ERROR:Disconnected when connect...\x00")
                 time.sleep(1)
@@ -240,25 +235,27 @@ class RadioVisWebSocket(WebSocket):
         (_, _, _, domain) = epg.split()
         url = "http://" + domain[:-1] + "/radiodns/spi/3.1/SI.xml"
         filename = "SI" + self.topic.replace("/topic", "").replace("/", "_") + ".xml"
-        with open(filename, "wb") as fp:
-            curl = pycurl.Curl()
-            curl.setopt(pycurl.URL, url)
-            curl.setopt(pycurl.WRITEDATA, fp)
-            curl.setopt(pycurl.FOLLOWLOCATION, 1)
-            curl.perform()
-            curl.close()
+        if not os.path.isfile(filename):
+            with open(filename, "wb") as fp:
+                curl = pycurl.Curl()
+                curl.setopt(pycurl.URL, url)
+                curl.setopt(pycurl.WRITEDATA, fp)
+                curl.setopt(pycurl.FOLLOWLOCATION, 1)
+                curl.perform()
+                curl.close()
         
         date =  datetime.now()
         dateStr = date.strftime("%Y%m%d")  
         url = "http://" + domain[:-1] + "/radiodns/spi/3.1/" + self.topic.replace("/topic/", "") + "/" + dateStr + "_PI.xml"
         filename = "PI_" + dateStr + self.topic.replace("/topic", "").replace("/", "_") + ".xml"
-        with open(filename, "wb") as fp:
-            curl = pycurl.Curl()
-            curl.setopt(pycurl.URL, url)
-            curl.setopt(pycurl.WRITEDATA, fp)
-            curl.setopt(pycurl.FOLLOWLOCATION, 1)
-            curl.perform()
-            curl.close()
+        if not os.path.isfile(filename):
+            with open(filename, "wb") as fp:
+                curl = pycurl.Curl()
+                curl.setopt(pycurl.URL, url)
+                curl.setopt(pycurl.WRITEDATA, fp)
+                curl.setopt(pycurl.FOLLOWLOCATION, 1)
+                curl.perform()
+                curl.close()
         return 0
                 
 from ws4py.server.geventserver import WebSocketWSGIApplication, WSGIServer
