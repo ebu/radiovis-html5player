@@ -29,7 +29,7 @@ You can use `pip install ws4py==0.3.0-beta gevent dnspython python-statsd ` to i
 
 The client part include a javascript file (_radiovis-html5player.js_) and a css file (_style.css_).
 
-You can use `<vis-frame topic="/topic/bla/bla">` to add a new frame with a dedicated websocket connection to the python server. The optional parameters `ip` and `port` can be used to override the default parameters (ip = localhost, port = 8777) to the websocket server. 
+You can use `<vis-frame topic="/topic/bla/bla">` to add a new frame with a dedicated websocket connection to the python server. The (optional) attributes `ip` and `port` can be used to override the default attribute values (ip = localhost, port = 8777) for the websocket server connection. 
 
 The file _index.html_ contains a sample implementation.
 
