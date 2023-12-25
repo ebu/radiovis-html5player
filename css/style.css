@@ -1,0 +1,84 @@
+:root {
+	--fade-in: 1000;
+	--fade-out: 1000;
+}
+
+.radiovis-mainframe {
+	width: 	320px;
+	height: 240px;
+	overflow: hidden;
+}
+
+.radiovis-slideframe {
+	clear: both;
+}
+
+.radiovis-slideframe div {
+	position: absolute;
+}
+
+.radiovis-outtertext {
+	width: 	320px;
+	padding-left: 2px;
+	overflow: hidden;
+	height: 20px;
+    position: relative;
+}
+
+.radiovis-main {
+	height: 260px;
+	width: 320px;
+}
+
+
+.scroll-box {
+  width: 100px;
+  height: 1.2em;
+  
+}
+
+.radiovis-innertext {
+  position: absolute;
+  white-space: nowrap;
+}
+
+body{
+	font-family: verdana;
+	font-size:13px;
+}
+
+.radiovis-main {
+	border: 1px #C5C5C2 solid;
+	box-shadow: 1px 1px 10px 0px #C5C5C2;
+}
+
+.radiovis-textframe {
+	border-top: 1px #C5C5C2 solid;
+}
+
+.frame {
+	float: left;
+	margin: 25px;
+}
+
+.hidden {
+	display: none;
+}
+
+.fadeIn {
+	animation: fadein var(--fade-in) ease 1;
+}
+
+.fadeOut {
+	animation: fadeout var(--fade-out) ease 1;
+}
+
+@keyframes fadein {
+	0% { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+@keyframes fadeout {
+	0% { opacity: 1; }
+	100% { opacity: 0; }
+}

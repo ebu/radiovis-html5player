@@ -8,57 +8,64 @@ STATS_GAUGE_APPNAME = 'app.html5player'
 from gevent import monkey; monkey.patch_all()
 
 from ws4py.websocket import WebSocket
+
+import asyncio
 import dns.resolver
 import time
 import socket
-import statsd
+import requests
+import pycurl
+import os.path
+from datetime import datetime
+#import statsd
 
-from gevent.coros import RLock
+from gevent.lock import RLock
 
-class Stats():
-    """The class to handle stats"""
+#class Stats():
+#    """The class to handle stats"""
+#
+#    def __init__(self):
+#        #self.statsd = StatsClient();
+#        self.gauge = statsd.gauge(STATS_GAUGE_APPNAME, 1)
+#
+#        self.topic_list = {}
+#
+#        self.lock = RLock()
+#
+#    def update_stats(self):
+#        """Update statsd stats"""
+#
+#        total = 0
+#
+#        with self.lock:
+#            for topic in self.topic_list:
+#                self.gauge.send('topic.' + '.'.join(topic.split('/')), self.topic_list[topic])
+#                total += self.topic_list[topic]
+#
+#        self.gauge.send('nb_clients', total)
+#
+#
+#
+#    def new_client(self, topic):
+#        """Register a new client on a topic"""
+#
+#        with self.lock:
+#            if topic not in self.topic_list:
+#                self.topic_list[topic] = 0
+#
+#            self.topic_list[topic] += 1
+#
+#        self.update_stats()
+#
+#    def remove_client(self, topic):
+#        """Unregister a client on a topic"""
+#
+#        with self.lock:
+#            self.topic_list[topic] -= 1
+#
+#        self.update_stats()
 
-    def __init__(self):
-        self.gauge = statsd.Gauge(STATS_GAUGE_APPNAME)
-
-        self.topic_list = {}
-
-        self.lock = RLock()
-
-    def update_stats(self):
-        """Update statsd stats"""
-
-        total = 0
-
-        with self.lock:
-            for topic in self.topic_list:
-                self.gauge.send('topic.' + '.'.join(topic.split('/')), self.topic_list[topic])
-                total += self.topic_list[topic]
-
-        self.gauge.send('nb_clients', total)
-
-
-
-    def new_client(self, topic):
-        """Register a new client on a topic"""
-
-        with self.lock:
-            if topic not in self.topic_list:
-                self.topic_list[topic] = 0
-
-            self.topic_list[topic] += 1
-
-        self.update_stats()
-
-    def remove_client(self, topic):
-        """Unregister a client on a topic"""
-
-        with self.lock:
-            self.topic_list[topic] -= 1
-
-        self.update_stats()
-
-stats = Stats()
+#stats = Stats()
 
 
 class RadioVisWebSocket(WebSocket):
@@ -68,22 +75,20 @@ class RadioVisWebSocket(WebSocket):
 
         self.topic = environ['PATH_INFO']
         self.stompsocket = None
-
         
-
     def closed(self, code, reason=None):
         if self.stompsocket:
             self.stompsocket.close()
 
-        stats.remove_client(self.topic)
+        #stats.remove_client(self.topic)
 
     def opened(self):
         """Called when a client is connected: send initial message"""
 
-        stats.new_client(self.topic)
+        #stats.new_client(self.topic)
 
         if self.topic[:7] != '/topic/':
-            self.send("RADIOVISWEBSOCKET:ERROR\x00")            
+            self.send(b"RADIOVISWEBSOCKET:ERROR\x00")            
         else:
 
             # Do the query for radiodns servers
@@ -95,18 +100,19 @@ class RadioVisWebSocket(WebSocket):
 
             
             # Find radiodns servers
-            ns = str(dns.resolver.query('radiodns.org', 'NS')[0])
-            ip = str(dns.resolver.query(ns, 'A')[0])
+            ns = str(dns.resolver.resolve('radiodns.org', 'NS')[0])
+            ip = str(dns.resolver.resolve(ns, 'A')[0])
 
             # Build a resolver using radiodns.org nameserver, timeout of 2, to be sure to have the latested FQDN
             resolver = dns.resolver.Resolver()
             resolver.lifetime = 2  # Timeout of 2
             resolver.nameservers = [ip]  # Use radiodns.org servers
-
+            
+            print("DNS ENTRY: " + dns_entry)
             try:
-                fqdn = str(resolver.query(dns_entry, 'CNAME')[0])
+                fqdn = str(resolver.resolve(dns_entry, 'CNAME')[0])
             except:
-                self.send("RADIOVISWEBSOCKET:NOFQDN\x00")
+                self.send(b"RADIOVISWEBSOCKET:NOFQDN\x00")
                 time.sleep(1)
                 self.close()
                 return
@@ -114,21 +120,32 @@ class RadioVisWebSocket(WebSocket):
             # Build resolver for others queries using local nameserver
             resolver = dns.resolver.Resolver()
             resolver.lifetime = 2  # Timeout of 2
-
+            if self.download_spi_file('_radioepg._tcp.' + fqdn):
+                self.download_spi_file('_radiospi._tcp.' + fqdn)
+            
             try:
-                vis = str(resolver.query('_radiovis._tcp.' + fqdn, 'SRV')[0])
+                vis = str(resolver.resolve('_radiovis._tcp.' + fqdn, 'SRV')[0])
             except:
-                self.send("RADIOVISWEBSOCKET:NOVIS\x00")
+                self.send(b"RADIOVISWEBSOCKET:NOVIS\x00")
                 time.sleep(1)
                 self.close()
                 return
-
+                
+            print("VIS CONNECT...")
+            print(vis)
             (_, _, port, ip) = vis.split()
-
+            
+            ip = ip[:-1]
             # Connect to radiovis server
             self.stompsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.stompsocket.connect((ip, int(port)))
-
+            try:
+                print(f"Connecting to {ip}:{port}")
+                self.stompsocket.connect((ip, int(port)))
+            except socket.error as msg:
+                raise socket.error(f"Failed to connect: {msg}")
+            
+            print(f"Successfully connected to {ip}:{port}")
+            
             self.incomingData = ''
 
             def get_one_frame():
@@ -137,9 +154,10 @@ class RadioVisWebSocket(WebSocket):
                 while not "\x00" in self.incomingData:
                     data = self.stompsocket.recv(1024)
                     if not data:
+                       print ("Nothing received") 
                        return None
                     else:
-                       self.incomingData += data
+                       self.incomingData += data.decode("utf8")
 
                 # Get only one frame
                 splited_data = self.incomingData.split('\x00', 1)
@@ -148,36 +166,38 @@ class RadioVisWebSocket(WebSocket):
                 self.incomingData = splited_data[1]
 
                 return splited_data[0]
-
-            self.stompsocket.send('CONNECT\n\n\x00')
+            print(self.topic + " CONNECT...")
+            self.stompsocket.send(b'CONNECT\n\n\x00')
 
             result = get_one_frame()
-
             if not result:
-                self.send("RADIOVISWEBSOCKET:ERROR:Disconnected when connect...\x00")
+                self.send(b"RADIOVISWEBSOCKET:ERROR:Disconnected when connect...\x00")
                 time.sleep(1)
                 self.close()
                 return
 
             if result[:9] != 'CONNECTED':
-                self.send("RADIOVISWEBSOCKET:ERROR:Not connected...\x00")
+                self.send(b"RADIOVISWEBSOCKET:ERROR:Not connected...\x00")
                 time.sleep(1)
                 self.close()
                 return
 
             # Send ack to the client
-            self.send("RADIOVISWEBSOCKET:HELLO\x00")
+            self.send(b"RADIOVISWEBSOCKET:HELLO\x00")
 
             # We're connected. Now we subscrible to the two topics
-            self.stompsocket.send('SUBSCRIBE\ndestination:' + self.topic + '/image\n\n\x00')
-            self.stompsocket.send('SUBSCRIBE\ndestination:' + self.topic + '/text\n\n\x00')
+            bstrImg = 'SUBSCRIBE\ndestination:' + self.topic + '/image\n\n\x00'
+            bstrTxt = 'SUBSCRIBE\ndestination:' + self.topic + '/text\n\n\x00'
+            
+            self.stompsocket.send(bstrImg.encode())
+            self.stompsocket.send(bstrTxt.encode())
 
             # Now just wait for messages
             while True:
                 result = get_one_frame()
 
                 if not result:
-                    self.send("RADIOVISWEBSOCKET:ERROR:Lost connection...\x00")
+                    self.send(b"RADIOVISWEBSOCKET:ERROR:Lost connection...\x00")
                     time.sleep(1)
                     self.close()
                     return
@@ -198,7 +218,46 @@ class RadioVisWebSocket(WebSocket):
         # The client shouldn't send message
         self.send("RADIOVISWEBSOCKET:ERROR:Unexcepted message\x00")
         self.close()
-
+    
+    def download_spi_file(self, url):
+        resolver = dns.resolver.Resolver()
+        resolver.lifetime = 2  # Timeout of 2
+            
+        try:
+            epg = str(resolver.resolve(url, 'SRV')[0])
+        except:
+            self.send(b"RADIOVISWEBSOCKET:NOEPG\x00")
+            #time.sleep(1)
+            #self.close()
+            return 1
+        print("EPG CONNECT...")
+        print(epg)
+        (_, _, _, domain) = epg.split()
+        url = "http://" + domain[:-1] + "/radiodns/spi/3.1/SI.xml"
+        filename = "SI" + self.topic.replace("/topic", "").replace("/", "_") + ".xml"
+        if not os.path.isfile(filename):
+            with open(filename, "wb") as fp:
+                curl = pycurl.Curl()
+                curl.setopt(pycurl.URL, url)
+                curl.setopt(pycurl.WRITEDATA, fp)
+                curl.setopt(pycurl.FOLLOWLOCATION, 1)
+                curl.perform()
+                curl.close()
+        
+        date =  datetime.now()
+        dateStr = date.strftime("%Y%m%d")  
+        url = "http://" + domain[:-1] + "/radiodns/spi/3.1/" + self.topic.replace("/topic/", "") + "/" + dateStr + "_PI.xml"
+        filename = "PI_" + dateStr + self.topic.replace("/topic", "").replace("/", "_") + ".xml"
+        if not os.path.isfile(filename):
+            with open(filename, "wb") as fp:
+                curl = pycurl.Curl()
+                curl.setopt(pycurl.URL, url)
+                curl.setopt(pycurl.WRITEDATA, fp)
+                curl.setopt(pycurl.FOLLOWLOCATION, 1)
+                curl.perform()
+                curl.close()
+        return 0
+                
 from ws4py.server.geventserver import WebSocketWSGIApplication, WSGIServer
 
 class WebSocketApplication(object):
@@ -218,4 +277,4 @@ server = WSGIServer((SERVER_IP, SERVER_PORT), WebSocketApplication(SERVER_IP, SE
 try:
     server.serve_forever()
 except KeyboardInterrupt:
-    server.server_close()
+    server.stop()

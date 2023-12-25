@@ -18,18 +18,18 @@ The websocket server is written in python. He needs the following packages:
 * ws4py==0.3.0-beta
 * gevent
 * dnspython
-* python-statsd (BSD license)
+* python-statsd (BSD license)) (Temporarly disabled)
 
 You can use `pip install ws4py==0.3.0-beta gevent dnspython python-statsd ` to install them.
 
 
-The server use statsd to send some stats about the number of connections. You can setup a local statsd server to collect them.
+(DISABLED) The server use statsd to send some stats about the number of connections. You can setup a local statsd server to collect them.
 
 ### Client
 
-The client part include a javascript file (_radiovis-html5player.js_) and a css file (_radiovis-html5player.css_). You have to include jquery first.
+The client part include a javascript file (_radiovis-html5player.js_) and a css file (_style.css_).
 
-You can use `$('#an_id').radiovisplayer('/topic/bla/bla', ip, port);` to load the player inside a DOM element. The optional parameters ip and port can be used to override defaults parameters (the current host and 8777) to the websocket server.
+You can use `<vis-frame topic="/topic/bla/bla">` to add a new frame with a dedicated websocket connection to the python server. The (optional) attributes `ip` and `port` can be used to override the default attribute values (ip = localhost, port = 8777) for the websocket server connection. 
 
 The file _index.html_ contains a sample implementation.
 

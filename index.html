@@ -1,55 +1,17 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>RadioVis HTML5 Player</title>
-		
-		<style>
-			body{
-				font-family: verdana;
-				font-size:13px;
-			}
-
-			.radiovis-main {
-				border: 1px #C5C5C2 solid;
-				box-shadow: 1px 1px 10px 0px #C5C5C2;
-			}
-
-			.radiovis-textframe {
-				border-top: 1px #C5C5C2 solid;
-			}
-
-			.frame {
-				float: left;
-				margin: 25px;
-			}
-		</style>
-
-		<link rel="stylesheet" href="css/radiovis-html5player.css">
-
-		<script src="js/jquery-1.10.2.min.js"></script>
+		<link rel="stylesheet" href="css/style.css">
 		<script src="js/radiovis-html5player.js"></script>
-		
 	</head>
 	<body>
-		<script>
-				$(document).ready(function(){
-					$('#frame1').radiovisplayer('/topic/fm/4e1/4000/10800');
-					$('#frame2').radiovisplayer('/topic/dab/ce1/ce15/c221/0');
-					$('#frame3').radiovisplayer('/topic/fm/fr/f201/10440');
-					$('#frame4').radiovisplayer('/topic/dab/6e0/6005/6354/0');
-					$('#frame5').radiovisplayer('/topic/dab/ce1/c185/c460/0');
-					$('#frame6').radiovisplayer('/topic/dab/de0/10d9/d3a6/0');
-
-				});
-		</script>
-
-
-		<div id="frame1" class="frame"></div>
-		<div id="frame2" class="frame"></div>
-		<div id="frame3" class="frame"></div>
-		<div id="frame4" class="frame"></div>
-		<div id="frame5" class="frame"></div>
-		<div id="frame6" class="frame"></div>
-
-
+		<vis-frame id="frame1" class="frame fadeIn" topic="/topic/fm/4e4/4000/10800"></vis-frame>
+		<vis-frame id="frame2" class="frame fadeIn" topic="/topic/dab/ce1/ce15/c221/0"></vis-frame>
+		<vis-frame id="frame3" class="frame fadeIn" topic="/topic/fm/fr/f201/10440"></vis-frame>
+		<vis-frame id="frame4" class="frame fadeIn" topic="/topic/dab/6e0/6005/6354/0"></vis-frame>
+		<vis-frame id="frame5" class="frame fadeIn" topic="/topic/dab/ce1/c185/c460/0"></vis-frame>
+		<vis-frame id="frame6" class="frame fadeIn" topic="/topic/dab/de0/10d9/d3a6/0"></vis-frame>
+		<vis-frame id="frame7" class="frame fadeIn" topic="/topic/dab/de0/107a/d361/0"></vis-frame>
 	</body>
 </html>
